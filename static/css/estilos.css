@@ -1,0 +1,7 @@
+:root {--verde:#185840;--fondo:#f4f7f5}
+html,body{min-height:100%}body{background:var(--fondo);color:#24322c}
+.bg-pirapo{background:var(--verde)}.hero{background:#e2f0e8}
+.hero-emoji{font-size:8rem;line-height:1.2}.card{border:1px solid #dfebe5;border-radius:12px}
+.card-stat{border-left:5px solid #288254}.mapa{height:320px;border-radius:9px;background:#e6ece7}
+.foto-evidencia{max-height:420px;object-fit:contain}
+@media (max-width:576px){.hero-emoji{font-size:5rem}.mapa{height:260px}}

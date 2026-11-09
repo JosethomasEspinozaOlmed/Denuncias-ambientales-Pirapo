@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Denuncia #{{ denuncia.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 flex-wrap align-items-center justify-content-between mb-3">
+  <h1 class="h2 mb-0">Denuncia #{{ denuncia.id }}</h1>
+  {% if user.es_funcionario %}<a href="{% url 'denuncias:gestionar' denuncia.id %}" class="btn btn-success">Gestionar denuncia</a>{% endif %}
+</div>
+<div class="row g-3">
+  <div class="col-lg-8"><div class="card shadow-sm"><div class="card-body">
+    <h2 class="h4">{{ denuncia.nombre_corto }}</h2>
+    <p><span class="badge {% if denuncia.estado == 'RESUELTO' %}text-bg-success{% elif denuncia.estado == 'EN_PROCESO' %}text-bg-primary{% else %}text-bg-warning{% endif %}">{{ denuncia.get_estado_display }}</span></p>
+    <dl class="row">
+      <dt class="col-sm-4">Categoría</dt><dd class="col-sm-8">{{ denuncia.categoria.nombre }}</dd>
+      <dt class="col-sm-4">Descripción</dt><dd class="col-sm-8">{{ denuncia.descripcion|linebreaksbr }}</dd>
+      <dt class="col-sm-4">Ubicación</dt><dd class="col-sm-8">{{ denuncia.direccion|default:'Punto seleccionado en mapa' }}{% if denuncia.latitud is not None %} · ({{ denuncia.latitud }}, {{ denuncia.longitud }}){% endif %}</dd>
+      <dt class="col-sm-4">Creada</dt><dd class="col-sm-8">{{ denuncia.creado|date:'d/m/Y H:i' }}</dd>
+      <dt class="col-sm-4">Responsable</dt><dd class="col-sm-8">{{ denuncia.asignado_a|default:'Sin asignar' }}</dd>
+    </dl>
+    {% if denuncia.foto %}<h3 class="h5">Fotografía adjunta</h3><img src="{{ denuncia.foto.url }}" alt="Evidencia fotográfica de la denuncia" class="img-fluid rounded foto-evidencia">{% endif %}
+  </div></div></div>
+  <div class="col-lg-4"><div class="card shadow-sm"><div class="card-body">
+    <h2 class="h5">Historial</h2>
+    <ol class="list-group list-group-numbered">
+      {% for evento in denuncia.historial.all %}<li class="list-group-item"><div class="fw-semibold">{{ evento.detalle }}</div><small class="text-muted">{{ evento.fecha|date:'d/m/Y H:i' }} · {{ evento.usuario.username }}</small></li>
+      {% empty %}<li class="list-group-item">Sin movimientos.</li>{% endfor %}
+    </ol>
+  </div></div></div>
+</div>
+<a class="btn btn-outline-secondary mt-3" href="{% url 'denuncias:listado' %}">Volver al listado</a>
+{% endblock %}

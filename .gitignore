@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Django
+db.sqlite3
+staticfiles/
+media/
+*.log
+
+# Configuracion privada
+.env
+.env.*
+!.env.example
+
+# PostgreSQL y respaldos
+*.sql
+*.dump
+*.backup
+pgdata/
+postgres_data/
+respaldo*/
+
+# Archivos comprimidos
+*.zip
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

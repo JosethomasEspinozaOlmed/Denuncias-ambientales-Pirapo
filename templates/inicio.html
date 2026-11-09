@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="hero p-4 p-md-5 rounded-4">
+  <div class="row align-items-center g-4">
+    <div class="col-md-8">
+      <span class="fw-bold text-uppercase small">Participación ciudadana</span>
+      <h1 class="display-6 fw-bold mt-2">Cuidemos juntos el ambiente de Pirapó</h1>
+      <p class="lead">Reportá basurales, quemas, contaminación y otras problemáticas ambientales. Consultá el avance de tus denuncias desde tu cuenta.</p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg">Ir a mi panel</a>
+      {% else %}
+        <a href="{% url 'registro' %}" class="btn btn-success btn-lg">Crear cuenta gratuita</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg">Ya tengo una cuenta</a>
+      {% endif %}
+    </div>
+    <div class="col-md-4 text-center"><div class="hero-emoji" aria-hidden="true">🌱</div></div>
+  </div>
+</section>
+<div class="row g-3 mt-3">
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h5">1. Describí el problema</h2><p class="mb-0">Seleccioná la categoría y explicá qué sucede.</p></div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h5">2. Indicá la ubicación</h2><p class="mb-0">Ingresá una dirección o marcá un punto en el mapa. La foto es opcional.</p></div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h5">3. Hacé seguimiento</h2><p class="mb-0">Consultá los estados Pendiente, En proceso y Resuelto.</p></div></div></div>
+</div>
+{% endblock %}

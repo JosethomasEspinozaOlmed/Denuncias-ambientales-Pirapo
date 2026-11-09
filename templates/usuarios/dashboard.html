@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Mi panel{% endblock %}
+{% block content %}
+<h1 class="h2 mb-1">Bienvenido/a, {{ user.first_name|default:user.username }}</h1>
+<p class="text-muted mb-4">Tu rol: {% if user.es_administrador %}Administrador{% elif user.es_funcionario %}Funcionario municipal{% else %}Ciudadano{% endif %}</p>
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">{% if user.es_administrador or user.es_funcionario %}Denuncias registradas{% else %}Mis denuncias{% endif %}</span><div class="h1 mt-2 mb-0">{{ resumen.total }}</div></div></div></div>
+  {% if user.es_administrador %}
+    <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">Cuentas ciudadanas</span><div class="h1 mt-2 mb-0">{{ resumen.ciudadanos }}</div></div></div></div>
+  {% else %}
+    <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">Pendientes</span><div class="h1 mt-2 mb-0">{{ resumen.pendientes }}</div></div></div></div>
+  {% endif %}
+</div>
+{% if user.es_administrador %}
+  <h2 class="h5">Administración</h2>
+  <p>Gestioná usuarios, categorías y parámetros desde el panel administrativo inicial.</p>
+  {% if user.is_staff %}<a href="{% url 'admin:index' %}" class="btn btn-success">Abrir administración</a>{% else %}<p class="alert alert-info">Para usar la administración de Django, el usuario debe contar con autorización de acceso administrativo (is_staff).</p>{% endif %}
+  <a href="{% url 'denuncias:listado' %}" class="btn btn-outline-success">Consultar denuncias</a>
+{% elif user.es_funcionario %}
+  <h2 class="h5">Gestión municipal</h2>
+  <p>Podés revisar denuncias, asignarlas a funcionarios y modificar su estado.</p>
+  <a href="{% url 'denuncias:listado' %}" class="btn btn-success">Ver y gestionar denuncias</a>
+{% else %}
+  <h2 class="h5">Portal ciudadano</h2>
+  <p>Registrá un problema ambiental y seguí su atención.</p>
+  <a href="{% url 'denuncias:nueva' %}" class="btn btn-success">Registrar nueva denuncia</a>
+  <a href="{% url 'denuncias:listado' %}" class="btn btn-outline-success">Consultar mis denuncias</a>
+{% endif %}
+{% endblock %}

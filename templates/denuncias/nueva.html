@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Nueva denuncia{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}
+<h1 class="h2">Registrar denuncia ambiental</h1>
+<p class="text-muted">Categoría, descripción y ubicación son obligatorias. La fotografía es opcional.</p>
+<div class="row g-3"><div class="col-lg-7"><div class="card shadow-sm"><div class="card-body p-4">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+    {% for campo in form %}
+      {% if campo.name == 'latitud' or campo.name == 'longitud' %}{{ campo }}{% else %}
+        <div class="mb-3"><label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} *{% endif %}</label>
+          {% if campo.name == 'foto' %}<input type="file" class="form-control" name="foto" id="{{ campo.id_for_label }}" accept="image/jpeg,image/png,image/webp">
+          {% elif campo.name == 'categoria' %}<select name="categoria" id="{{ campo.id_for_label }}" class="form-select" required><option value="">Seleccioná una categoría</option>{% for opcion in campo.field.queryset %}<option value="{{ opcion.id }}" {% if campo.value|stringformat:'s' == opcion.pk|stringformat:'s' %}selected{% endif %}>{{ opcion.nombre }}</option>{% endfor %}</select>
+          {% elif campo.name == 'descripcion' %}<textarea name="descripcion" id="{{ campo.id_for_label }}" class="form-control" rows="4" required>{{ campo.value|default_if_none:'' }}</textarea>
+          {% else %}<input class="form-control" id="{{ campo.id_for_label }}" type="text" name="{{ campo.name }}" value="{{ campo.value|default_if_none:'' }}" {% if campo.field.required %}required{% endif %}>{% endif %}
+          {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+          {% for error in campo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <p id="ubicacion-feedback" class="text-muted small" aria-live="polite">Sin coordenadas seleccionadas. Podés escribir una dirección de referencia.</p>
+    <button class="btn btn-success" type="submit">Guardar denuncia</button>
+  </form>
+</div></div></div>
+<div class="col-lg-5"><div class="card shadow-sm"><div class="card-body">
+  <h2 class="h5">Ubicación en el mapa</h2>
+  <p class="small text-muted">Hacé clic en el mapa para colocar el marcador o usá la ubicación del dispositivo. Si el mapa no carga, completá la dirección en el formulario.</p>
+  <div id="mapa" class="mapa" role="region" aria-label="Mapa para seleccionar ubicación"></div>
+  <button type="button" class="btn btn-outline-success btn-sm mt-3" id="usar-gps">Usar mi ubicación</button>
+  <button type="button" class="btn btn-outline-secondary btn-sm mt-3" id="quitar-punto">Quitar marcador</button>
+  <p class="small text-muted mt-3 mb-0">La ubicación GPS puede requerir HTTPS al probar desde un celular. El ingreso manual siempre está disponible.</p>
+</div></div></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'js/ubicacion.js' %}"></script>
+{% endblock %}

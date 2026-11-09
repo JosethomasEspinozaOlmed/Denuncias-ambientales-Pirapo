@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Ingresar{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-6 col-lg-5">
+  <div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h3 mb-3">Ingresá a tu cuenta</h1>
+    {% if form.errors %}<div class="alert alert-danger">Usuario o contraseña incorrectos.</div>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="mb-3"><label class="form-label" for="id_username">Usuario</label><input class="form-control" type="text" id="id_username" name="username" autocomplete="username" required autofocus></div>
+      <div class="mb-3"><label class="form-label" for="id_password">Contraseña</label><input class="form-control" type="password" id="id_password" name="password" autocomplete="current-password" required></div>
+      <button class="btn btn-success w-100" type="submit">Iniciar sesión</button>
+    </form>
+    <p class="small mt-3 mb-0">¿No tenés cuenta? <a href="{% url 'registro' %}">Registrate</a></p>
+  </div></div>
+</div></div>
+{% endblock %}
