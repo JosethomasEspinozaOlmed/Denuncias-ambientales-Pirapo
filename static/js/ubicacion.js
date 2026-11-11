@@ -10,9 +10,13 @@
   // Coordenadas aproximadas de Pirapó, solo para centrar el mapa (no se envían como denuncia).
   if (window.L) {
     mapa = L.map("mapa").setView([-26.85751, -55.54384], 12);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(mapa);
+
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    referrerPolicy: "strict-origin-when-cross-origin"
+  }).addTo(mapa);
+
   } else {
     document.getElementById("mapa").textContent = "El mapa no está disponible. Podés indicar tu dirección manualmente.";
   }
