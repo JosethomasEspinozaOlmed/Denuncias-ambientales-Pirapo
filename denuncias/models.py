@@ -180,3 +180,41 @@ class HistorialEstado(models.Model):
 
     def __str__(self):
         return f"Denuncia #{self.denuncia_id}: {self.accion}"
+
+class ActuacionMunicipal(models.Model):
+    """Constancia interna de una visita/verificación de una denuncia ambiental.
+
+    No es una denuncia judicial ni un acta con efecto legal automático.
+    La actuación no sustituye el historial de cambios de estado.
+    """
+
+    class Resultado(models.TextChoices):
+        CONFIRMADA = "CONFIRMADA", "Problemática confirmada"
+        NO_CONSTATADA = "NO_CONSTATADA", "Problemática no constatada"
+        SEGUIMIENTO = "REQUIERE_SEGUIMIENTO", "Requiere seguimiento"
+
+    denuncia = models.ForeignKey(
+        Denuncia, on_delete=models.CASCADE, related_name="actuaciones",
+    )
+    funcionario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name="actuaciones_municipales",
+        limit_choices_to={"rol": "FUNCIONARIO"},
+    )
+    fecha_verificacion = models.DateField()
+    lugar_verificado = models.CharField(max_length=255)
+    resultado = models.CharField(max_length=24, choices=Resultado.choices)
+    hechos_constatados = models.TextField()
+    medidas_adoptadas = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True)
+    proxima_verificacion = models.DateField(blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "denuncias_actuacion_municipal"
+        ordering = ["-fecha_registro", "-pk"]
+        verbose_name = "Actuación municipal"
+        verbose_name_plural = "Actuaciones municipales"
+
+    def __str__(self):
+        return f"Actuación #{self.pk} — Denuncia #{self.denuncia_id}"

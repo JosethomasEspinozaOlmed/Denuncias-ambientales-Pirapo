@@ -1,7 +1,7 @@
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
 from usuarios.models import Usuario
-from .models import Categoria, Denuncia
+from .models import ActuacionMunicipal, Categoria, Denuncia
 
 
 class NuevaDenunciaForm(forms.ModelForm):
@@ -24,7 +24,7 @@ class NuevaDenunciaForm(forms.ModelForm):
 
     class Meta:
         model = Denuncia
-        fields = ("titulo", "categoria", "descripcion", "direccion", "latitud", "longitud", "foto")
+        fields = ("categoria", "descripcion", "direccion", "latitud", "longitud", "foto")
         widgets = {
             "descripcion": forms.Textarea(attrs={"rows": 4, "placeholder": "Describe el problema ambiental"}),
         }
@@ -66,3 +66,57 @@ class GestionDenunciaForm(forms.ModelForm):
         ).order_by("first_name", "last_name", "username")
         self.fields["asignado_a"].required = False
         self.fields["asignado_a"].empty_label = "Sin asignar"
+
+class ActuacionMunicipalForm(forms.ModelForm):
+    """Formulario interno para constatar hechos y documentar medidas municipales."""
+
+    # Campo auxiliar: cambia el estado actual, pero no pertenece a la tabla ActuacionMunicipal.
+    nuevo_estado = forms.ChoiceField(
+        label="Actualizar estado de la denuncia",
+        choices=[("", "Conservar estado actual")] + list(Denuncia.Estado.choices),
+        required=False,
+    )
+
+    class Meta:
+        model = ActuacionMunicipal
+        fields = (
+            "fecha_verificacion", "lugar_verificado", "resultado",
+            "hechos_constatados", "medidas_adoptadas",
+            "observaciones", "proxima_verificacion",
+        )
+        labels = {
+            "fecha_verificacion": "Fecha de verificación",
+            "lugar_verificado": "Lugar verificado",
+            "resultado": "Resultado de la verificación",
+            "hechos_constatados": "Hechos constatados",
+            "medidas_adoptadas": "Medidas adoptadas (si corresponde)",
+            "observaciones": "Observaciones adicionales",
+            "proxima_verificacion": "Próxima verificación (opcional)",
+        }
+        widgets = {
+            "fecha_verificacion": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
+            "lugar_verificado": forms.TextInput(attrs={"class": "form-control", "placeholder": "Dirección o referencia del lugar visitado"}),
+            "resultado": forms.Select(attrs={"class": "form-select"}),
+            "hechos_constatados": forms.Textarea(attrs={"rows": 4, "class": "form-control", "placeholder": "Describí lo verificado en el lugar"}),
+            "medidas_adoptadas": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+            "observaciones": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+            "proxima_verificacion": forms.DateInput(attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nuevo_estado"].widget.attrs["class"] = "form-select"
+        self.fields["lugar_verificado"].strip = True
+        self.fields["hechos_constatados"].strip = True
+        # Los campos DateField pueden recibir una cadena ISO al enviar el formulario.
+
+    def clean(self):
+        datos = super().clean()
+        from django.utils import timezone
+        fecha = datos.get("fecha_verificacion")
+        proxima = datos.get("proxima_verificacion")
+        if fecha and fecha > timezone.localdate():
+            self.add_error("fecha_verificacion", "La verificación no puede tener fecha futura.")
+        if fecha and proxima and proxima <= fecha:
+            self.add_error("proxima_verificacion", "La próxima visita debe ser posterior a la verificación.")
+        return datos

@@ -1,0 +1,51 @@
+PIRAPÓ AMBIENTAL — ETAPA 6: REGISTRO E INICIO DE SESIÓN POR CORREO
+==================================================================
+Requisitos: tener instaladas y probadas las etapas 3, 4 y 5.
+NO requiere migraciones. NO reemplaza los modelos ni los datos PostgreSQL.
+
+1. Parar web (mantener db activo): docker compose stop web
+2. En VS Code, confirmar rama develop y guardar cambios en un commit.
+3. Respaldar usuarios/forms.py, plantillas de inicio y registro, pirapo/settings.py y pirapo/urls.py.
+4. Descomprimir este ZIP en C:\Proyectos\sistema_denuncias_pirapo (Sobrescribir).
+5. Ejecutar desde la carpeta principal: python aplicar_etapa6.py
+   Si no tenés Python local: docker compose run --rm web python aplicar_etapa6.py
+   El script añade ajustes sin borrar las configuraciones previas, incluido SECURE_REFERRER_POLICY.
+6. Ejecutar: docker compose up -d web
+7. Ejecutar: docker compose exec web python manage.py check
+8. Ejecutar: docker compose exec web python manage.py makemigrations --check --dry-run
+9. Ejecutar: docker compose exec web python manage.py test
+10. Probar: http://localhost:8000/registro/ (sin username), /ingresar/ (correo),
+    /recuperar-clave/ (restablecimiento local).
+
+IMPORTANTE SOBRE RECUPERACION
+-----------------------------
+El proyecto viene en modo local, sin SMTP. En DEBUG=True, el enlace de recuperación
+NO llega a la casilla real; se escribe en los logs del contenedor Django:
+
+  docker compose logs --tail=100 web
+
+Ese enlace es sensible. NO publicar registros ni compartir enlaces de recuperación.
+Para envío real de correo, configurar SMTP de un proveedor seguro en .env:
+  DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+  DJANGO_EMAIL_HOST=servidor.smtp.valido
+  DJANGO_EMAIL_PORT=587
+  DJANGO_EMAIL_USE_TLS=True
+  DJANGO_EMAIL_HOST_USER=tu_usuario_smtp
+  DJANGO_EMAIL_HOST_PASSWORD=tu_clave_o_token_smtp
+  DJANGO_DEFAULT_FROM_EMAIL=Pirapo Ambiental <correo@dominio-valido.com>
+No subir .env a GitHub; en producción configurar HTTPS, límites de intentos
+de inicio de sesión y controles antispam. El modo consola no envía correos.
+
+SEGURIDAD Y COMPATIBILIDAD
+-------------------------
+- Django Admin sigue utilizando su URL /admin/ y admite nombre de usuario.
+- Los ciudadanos existentes pueden iniciar sesión con su email guardado.
+- El rol público SIEMPRE se fija como CIUDADANO.
+- El nombre de usuario se conserva internamente y es autogenerado para ciudadanos nuevos.
+- El panel municipal de la etapa 5 sigue usando el campo 'username' para gestionar cuentas;
+  esto no cambia el inicio de sesión por correo para funcionarios y administradores.
+- La copia de settings.py y urls.py anterior se guarda en respaldo_etapa6/ (ignorado por Git).
+- Para nombres de usuario/correos duplicados solo por mayúsculas entre datos antiguos,
+  revisar los registros antes de habilitar el inicio de sesión por correo.
+
+NOTA: no sobrescribir las carpetas templates/gestion o denuncias. Este paquete no las modifica.

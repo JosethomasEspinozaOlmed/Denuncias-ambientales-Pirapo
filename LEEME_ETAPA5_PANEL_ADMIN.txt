@@ -1,0 +1,48 @@
+PIRAPÓ AMBIENTAL — ETAPA 5: PANEL ADMINISTRATIVO MUNICIPAL
+===========================================================
+
+PROPÓSITO
+Implementar un panel propio para el administrador, sin utilizar Django Admin en la
+operación cotidiana. Django Admin sigue disponible para administración técnica.
+
+Incluye:
+- /gestion/                        panel y resumen
+- /gestion/usuarios/               listar / buscar / filtrar
+- /gestion/usuarios/nuevo/         crear ciudadano o funcionario
+- /gestion/usuarios/<id>/editar/   modificar usuario
+- /gestion/usuarios/<id>/clave/    restablecer contraseña de usuario
+- /gestion/usuarios/<id>/estado/   activar / desactivar (solo POST)
+- /gestion/categorias/            listar categorías
+- /gestion/categorias/nueva/      crear categoría
+- /gestion/categorias/<id>/editar/ modificar categoría
+- /gestion/categorias/<id>/estado/ activar / desactivar (solo POST)
+
+SEGURIDAD
+- Solo rol ADMINISTRADOR o superusuario activo.
+- Un ADMINISTRADOR normal no puede crear ni modificar otros administradores.
+- Nadie modifica su propia cuenta ni superusuarios desde este panel.
+- No hay eliminación definitiva. Se conservan usuarios, denuncias y categorías.
+- Los botones de estado utilizan POST + token CSRF.
+- No se permite desactivar funcionario con denuncias pendientes o en proceso asignadas.
+- Las contraseñas se guardan mediante mecanismos de Django, no texto plano.
+
+INSTALACIÓN
+1. Verificar que la Etapa 4 está instalada y que sus pruebas pasan.
+2. Revisar git status y hacer commit/backup de cambios actuales antes de reemplazar.
+3. Descomprimir este ZIP en C:\Proyectos\sistema_denuncias_pirapo, manteniendo
+   la estructura de carpetas (usuarios/, pirapo/, templates/, static/).
+4. docker compose up -d
+5. docker compose exec web python manage.py check
+6. docker compose exec web python manage.py makemigrations --check --dry-run
+7. docker compose exec web python manage.py test
+8. Abrir http://localhost:8000/gestion/ con una cuenta ADMINISTRADOR.
+
+Esta etapa NO agrega modelos ni requiere migración de datos.
+No sobrescribir archivos de etapas anteriores distintos de pirapo/urls.py,
+templates/base.html y templates/usuarios/dashboard.html. Si modificaste esos
+archivos luego de instalar la Etapa 4, compará los cambios antes de reemplazar.
+
+NOTA PARA EL INFORME ACADÉMICO
+El término CRUD en este módulo implica crear, listar, modificar y desactivar
+lógicamente, no borrar físicamente datos relacionados con denuncias.
+Las verificaciones/actuaciones siguen siendo responsabilidad de funcionarios.

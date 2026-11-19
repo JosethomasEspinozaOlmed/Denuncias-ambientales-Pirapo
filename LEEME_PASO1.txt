@@ -1,0 +1,47 @@
+PASO 1 - SIMPLIFICAR FORMULARIO DE DENUNCIAS AMBIENTALES - PIRAPO
+================================================================
+
+Cambio solicitado por el profesor:
+- No mostrar ni pedir el campo Titulo breve.
+- La primera pregunta es Categoria, seguida de Descripcion.
+- Ubicacion obligatoria: direccion O punto en el mapa.
+- Fotografia opcional.
+- Estado inicial Pendiente.
+
+ARCHIVOS DEL PAQUETE
+- denuncias/forms.py
+- templates/denuncias/nueva.html
+- denuncias/test_formulario_simplificado.py (3 pruebas nuevas)
+
+Este paquete se preparo sobre la version Etapa 3 del ciudadano compatible con
+la correccion DER 0003. No modifica models.py, migraciones, urls.py, JavaScript
+del mapa, settings.py ni la base de datos. Conserva las denuncias anteriores.
+
+ANTES DE EXTRAER
+1. Comproba que estas en la carpeta C:\Proyectos\sistema_denuncias_pirapo
+2. Ejecuta git status y asegura los cambios pendientes (commit/respaldos).
+3. Respalda los archivos actuales:
+
+   New-Item -ItemType Directory -Force C:\Proyectos\respaldo_formulario_pirapo | Out-Null
+   Copy-Item .\denuncias\forms.py C:\Proyectos\respaldo_formulario_pirapo\forms.py
+   Copy-Item .\templates\denuncias\nueva.html C:\Proyectos\respaldo_formulario_pirapo\nueva.html
+
+INSTALAR (PowerShell en carpeta del proyecto)
+
+   Expand-Archive -Path "$env:USERPROFILE\Downloads\pirapo_paso1_formulario_sin_titulo.zip" -DestinationPath . -Force
+
+VALIDAR
+
+   docker compose exec web python manage.py check
+   docker compose exec web python manage.py test
+
+No se ejecutan nuevas migraciones por este cambio. Si tu proyecto contiene
+ediciones posteriores en forms.py o nueva.html, compara antes de reemplazar.
+
+PRUEBA MANUAL
+- Abrir http://localhost:8000/denuncias/nueva/
+- Verificar que no aparece Titulo breve.
+- Crear denuncia con Categoria + Descripcion + Direccion, sin foto.
+- Crear denuncia con Categoria + Descripcion + Punto en mapa, sin direccion.
+- Intentar registrar sin direccion ni coordenadas: debe impedirlo.
+- Ver que las denuncias anteriores siguen apareciendo.

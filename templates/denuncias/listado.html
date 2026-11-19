@@ -1,20 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}Denuncias{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap gap-2 mb-3 align-items-center">
-  <h1 class="h2 mb-0">{% if user.es_funcionario or user.es_administrador %}Denuncias ambientales{% else %}Mis denuncias{% endif %}</h1>
-  {% if user.rol == 'CIUDADANO' and not user.is_superuser %}<a href="{% url 'denuncias:nueva' %}" class="btn btn-success">+ Nueva denuncia</a>{% endif %}
-</div>
-<form method="get" class="d-flex align-items-end gap-2 mb-3">
-  <div><label class="form-label" for="estado">Filtrar por estado</label><select class="form-select" name="estado" id="estado"><option value="">Todos</option>{% for value, label in estados %}<option value="{{ value }}" {% if value == estado_actual %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-  <button class="btn btn-outline-success" type="submit">Filtrar</button>
-</form>
-<div class="card shadow-sm"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
-  <thead class="table-light"><tr><th>ID</th><th>Problema</th><th>Categoría</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
-  <tbody>
-    {% for d in denuncias %}
-      <tr><td>#{{ d.id }}</td><td>{{ d.nombre_corto }}</td><td>{{ d.categoria.nombre }}</td><td><span class="badge {% if d.estado == 'RESUELTO' %}text-bg-success{% elif d.estado == 'EN_PROCESO' %}text-bg-primary{% else %}text-bg-warning{% endif %}">{{ d.get_estado_display }}</span></td><td>{{ d.creado|date:'d/m/Y' }}</td><td><a class="btn btn-sm btn-outline-success" href="{% url 'denuncias:detalle' d.id %}">Detalle</a></td></tr>
-    {% empty %}<tr><td colspan="6" class="text-center py-4">Todavía no hay denuncias para mostrar.</td></tr>{% endfor %}
-  </tbody>
-</table></div></div>
+<div class="page-heading"><div><p class="eyebrow mb-2">CONSULTA Y SEGUIMIENTO</p><h1 class="mb-2">{% if user.es_funcionario or user.es_administrador %}Denuncias ambientales{% else %}Mis denuncias{% endif %}</h1><p class="text-muted mb-0">{% if user.es_funcionario or user.es_administrador %}Buscá, filtrá y revisá el seguimiento de las denuncias registradas.{% else %}Consultá el estado de los problemas ambientales que reportaste.{% endif %}</p></div><div class="heading-actions">{% if user.rol == 'CIUDADANO' and not user.is_superuser %}<a href="{% url 'denuncias:nueva' %}" class="btn btn-accent">+ Nueva denuncia</a>{% endif %}{% if user.es_funcionario or user.es_administrador %}<a class="btn btn-outline-success" href="{% url 'denuncias:exportar_csv' %}?estado={{ estado_actual|urlencode }}&amp;categoria={{ categoria_actual|urlencode }}&amp;q={{ q_actual|urlencode }}&amp;desde={{ desde_actual|urlencode }}&amp;hasta={{ hasta_actual|urlencode }}{% if mias_actual %}&amp;mias=1{% endif %}">↓ Exportar CSV</a>{% endif %}</div></div>
+<section class="surface-card filter-card"><form method="get" class="row g-3 align-items-end">
+  <div class="col-md-5 col-lg-4"><label for="q" class="form-label">Buscar por problema o lugar</label><input id="q" name="q" class="form-control" maxlength="100" placeholder="Ej.: residuos, barrio Centro..." value="{{ q_actual }}"></div>
+  <div class="col-sm-6 col-md-3 col-lg-2"><label for="estado" class="form-label">Estado</label><select id="estado" name="estado" class="form-select"><option value="">Todos</option>{% for value, label in estados %}<option value="{{ value }}" {% if estado_actual == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><label for="categoria" class="form-label">Categoría</label><select id="categoria" name="categoria" class="form-select"><option value="">Todas</option>{% for cat in categorias %}<option value="{{ cat.pk }}" {% if categoria_actual == cat.pk|stringformat:'s' %}selected{% endif %}>{{ cat.nombre }}</option>{% endfor %}</select></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><label for="desde" class="form-label">Desde</label><input type="date" id="desde" name="desde" value="{{ desde_actual }}" class="form-control"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><label for="hasta" class="form-label">Hasta</label><input type="date" id="hasta" name="hasta" value="{{ hasta_actual }}" class="form-control"></div>
+  {% if user.es_funcionario %}<div class="col-sm-6 col-md-4 col-lg-3"><div class="form-check mb-2"><input type="checkbox" id="mias" name="mias" value="1" class="form-check-input" {% if mias_actual %}checked{% endif %}><label for="mias" class="form-check-label">Solo mis asignaciones</label></div></div>{% endif %}
+  <div class="col-auto"><button type="submit" class="btn btn-success">Aplicar filtros</button></div><div class="col-auto"><a href="{% url 'denuncias:listado' %}" class="btn btn-outline-secondary">Limpiar</a></div>
+</form></section>
+<div class="results-heading"><strong>{{ total_filtrado }} resultado{{ total_filtrado|pluralize }}</strong><span>Ordenados por fecha de registro</span></div>
+<section class="surface-card results-surface">
+  <div class="table-responsive d-none d-lg-block"><table class="table table-hover align-middle mb-0">
+    <thead><tr><th>ID</th><th>Problema</th><th>Categoría</th><th>Estado</th>{% if user.es_funcionario or user.es_administrador %}<th>Responsable</th>{% endif %}<th>Fecha</th><th></th></tr></thead>
+    <tbody>{% for d in denuncias %}<tr><td><span class="id-text">#{{ d.id }}</span></td><td><strong>{{ d.nombre_corto }}</strong><br><small class="text-muted">{{ d.direccion|default:'Ubicación en mapa'|truncatechars:45 }}</small></td><td>{{ d.categoria.nombre }}</td><td><span class="status-pill {% if d.estado == 'RESUELTO' %}status-done{% elif d.estado == 'EN_PROCESO' %}status-progress{% else %}status-pending{% endif %}">{{ d.get_estado_display }}</span></td>{% if user.es_funcionario or user.es_administrador %}<td>{{ d.asignado_a|default:'Sin asignar' }}</td>{% endif %}<td>{{ d.creado|date:'d/m/Y' }}</td><td><a href="{% url 'denuncias:detalle' d.pk %}" class="btn btn-outline-success btn-sm">Ver detalle</a></td></tr>
+    {% empty %}<tr><td colspan="7"><div class="empty-state"><span class="empty-icon" aria-hidden="true">☘</span><h3>Sin resultados</h3><p>No encontramos denuncias con esos filtros.</p></div></td></tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="mobile-results d-lg-none">{% for d in denuncias %}<a class="mobile-result" href="{% url 'denuncias:detalle' d.pk %}"><span class="d-flex justify-content-between gap-2"><span class="id-text">#{{ d.id }} · {{ d.categoria.nombre }}</span><span class="status-pill {% if d.estado == 'RESUELTO' %}status-done{% elif d.estado == 'EN_PROCESO' %}status-progress{% else %}status-pending{% endif %}">{{ d.get_estado_display }}</span></span><strong>{{ d.nombre_corto }}</strong><small>{{ d.direccion|default:'Ubicación en mapa'|truncatechars:60 }} · {{ d.creado|date:'d/m/Y' }}</small><span class="mobile-result-arrow">Ver detalle →</span></a>{% empty %}<div class="empty-state"><span class="empty-icon" aria-hidden="true">☘</span><h3>Sin resultados</h3><p>No encontramos denuncias con esos filtros.</p></div>{% endfor %}</div>
+</section>
+{% if pagina.paginator.num_pages > 1 %}
+<form method="get" class="pagination-controls"><input type="hidden" name="q" value="{{ q_actual }}"><input type="hidden" name="estado" value="{{ estado_actual }}"><input type="hidden" name="categoria" value="{{ categoria_actual }}"><input type="hidden" name="desde" value="{{ desde_actual }}"><input type="hidden" name="hasta" value="{{ hasta_actual }}">{% if mias_actual %}<input type="hidden" name="mias" value="1">{% endif %}<span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span><div class="d-flex gap-2">{% if pagina.has_previous %}<button class="btn btn-outline-success btn-sm" name="pagina" value="{{ pagina.previous_page_number }}">← Anterior</button>{% endif %}{% if pagina.has_next %}<button class="btn btn-outline-success btn-sm" name="pagina" value="{{ pagina.next_page_number }}">Siguiente →</button>{% endif %}</div></form>
+{% endif %}
 {% endblock %}

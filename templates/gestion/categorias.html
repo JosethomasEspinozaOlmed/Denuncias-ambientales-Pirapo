@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Administrar categorías{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">GESTIÓN MUNICIPAL</p><h1>Categorías ambientales</h1><p class="text-muted">Organizá los tipos de problemáticas que puede reportar la ciudadanía.</p></div><a class="btn btn-success" href="{% url 'administracion:categoria_nueva' %}">+ Nueva categoría</a></div>
+{% include 'gestion/_tabs.html' %}
+<section class="surface-card admin-list-card">
+<form method="get" class="admin-filters" aria-label="Filtrar categorías"><div><label for="buscar" class="form-label">Buscar categoría</label><input id="buscar" class="form-control" name="q" value="{{ q }}" placeholder="Nombre o descripción"></div><button type="submit" class="btn btn-outline-success">Buscar</button></form>
+<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Nombre</th><th>Descripción</th><th>Denuncias</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+{% for cat in pagina %}<tr><td><strong>{{ cat.nombre }}</strong></td><td>{{ cat.descripcion|default:'Sin descripción'|truncatechars:75 }}</td><td>{{ cat.denuncias.count }}</td><td><span class="admin-status {% if cat.activa %}on{% else %}off{% endif %}">{% if cat.activa %}Activa{% else %}Inactiva{% endif %}</span></td><td><div class="admin-row-actions"><a class="btn btn-sm btn-outline-success" href="{% url 'administracion:categoria_editar' cat.pk %}">Editar</a><form method="post" action="{% url 'administracion:categoria_estado' cat.pk %}">{% csrf_token %}<button class="btn btn-sm {% if cat.activa %}btn-outline-danger{% else %}btn-outline-success{% endif %}" type="submit">{% if cat.activa %}Desactivar{% else %}Activar{% endif %}</button></form></div></td></tr>
+{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No hay categorías.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% include 'gestion/_paginacion.html' %}
+{% endblock %}

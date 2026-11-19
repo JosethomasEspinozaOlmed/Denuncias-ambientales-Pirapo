@@ -8,9 +8,10 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
-from .forms import GestionDenunciaForm, NuevaDenunciaForm
-from .models import Categoria, Denuncia, Evidencia, HistorialEstado, Ubicacion
+from .forms import ActuacionMunicipalForm, GestionDenunciaForm, NuevaDenunciaForm
+from .models import ActuacionMunicipal, Categoria, Denuncia, Evidencia, HistorialEstado, Ubicacion
 
 
 def _denuncias_filtradas(request):
@@ -139,7 +140,11 @@ def detalle(request, pk):
     if not (usuario.es_funcionario or usuario.es_administrador):
         qs = qs.filter(ciudadano=usuario)
     denuncia = get_object_or_404(qs, pk=pk)
-    return render(request, 'denuncias/detalle.html', {'denuncia': denuncia})
+    return render(request, 'denuncias/detalle.html', {
+        'denuncia': denuncia,
+        'actuaciones': denuncia.actuaciones.select_related('funcionario').all()
+        if (usuario.es_funcionario or usuario.es_administrador) else None,
+    })
 
 
 @login_required
@@ -173,3 +178,63 @@ def gestionar(request, pk):
         messages.success(request, 'Denuncia actualizada correctamente.')
         return redirect('denuncias:detalle', pk=pk)
     return render(request, 'denuncias/gestionar.html', {'form': form, 'denuncia': denuncia})
+
+
+@login_required
+def registrar_actuacion(request, pk):
+    """Registra una verificación municipal y opcionalmente actualiza el estado.
+
+    No permite al ciudadano ni al administrador crear actuaciones.
+    Cada registro es histórico; no modifica ni elimina visitas previas.
+    """
+    if not request.user.es_funcionario:
+        return HttpResponseForbidden('Solo funcionarios municipales autorizados pueden verificar denuncias.')
+
+    denuncia = get_object_or_404(
+        Denuncia.objects.select_related('categoria', 'ubicacion', 'asignado_a'), pk=pk,
+    )
+    inicial = {
+        'fecha_verificacion': timezone.localdate(),
+        'lugar_verificado': denuncia.direccion or (
+            f'{denuncia.latitud}, {denuncia.longitud}'
+            if denuncia.latitud is not None and denuncia.longitud is not None else ''
+        ),
+    }
+    form = ActuacionMunicipalForm(request.POST or None, initial=inicial)
+
+    if request.method == 'POST' and form.is_valid():
+        with transaction.atomic():
+            # Serializamos el cambio sobre esta denuncia para evitar estados cruzados.
+            actual = Denuncia.objects.select_for_update().get(pk=pk)
+            actuacion = form.save(commit=False)
+            actuacion.denuncia = actual
+            actuacion.funcionario = request.user
+            actuacion.full_clean()
+            actuacion.save()
+
+            HistorialEstado.objects.create(
+                denuncia=actual, usuario=request.user, funcionario=request.user,
+                accion='VERIFICACION',
+                observacion=f'Verificación municipal registrada el {actuacion.fecha_verificacion:%d/%m/%Y}.',
+            )
+            nuevo_estado = form.cleaned_data.get('nuevo_estado')
+            if nuevo_estado and nuevo_estado != actual.estado:
+                estado_anterior = actual.estado
+                actual.estado = nuevo_estado
+                actual.full_clean()
+                actual.save(update_fields=['estado', 'actualizado'])
+                HistorialEstado.objects.create(
+                    denuncia=actual, usuario=request.user, funcionario=request.user,
+                    accion='CAMBIO_ESTADO', estado_anterior=estado_anterior,
+                    estado_nuevo=actual.estado,
+                    observacion=(
+                        f'Estado actualizado durante la verificación municipal: '
+                        f'{dict(Denuncia.Estado.choices)[estado_anterior]} → {actual.get_estado_display()}.'
+                    ),
+                )
+        messages.success(request, f'Verificación registrada en la denuncia #{pk}.')
+        return redirect('denuncias:detalle', pk=pk)
+
+    return render(request, 'denuncias/registrar_actuacion.html', {
+        'denuncia': denuncia, 'form': form,
+    })

@@ -73,3 +73,17 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "inicio"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# Etapa 6: correo para acceso, manteniendo usuarios existentes y Django Admin.
+AUTHENTICATION_BACKENDS = ['usuarios.backends.CorreoOUsuarioBackend']
+DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'Pirapo Ambiental <no-reply@pirapo.local>')
+EMAIL_BACKEND = os.getenv(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('DJANGO_EMAIL_PORT', '25'))
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', 'False').lower() == 'true'
+PASSWORD_RESET_TIMEOUT = 3600

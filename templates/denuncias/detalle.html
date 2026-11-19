@@ -1,30 +1,39 @@
 {% extends 'base.html' %}
-{% block title %}Denuncia #{{ denuncia.id }}{% endblock %}
+{% block title %}Denuncia #{{ denuncia.pk }}{% endblock %}
 {% block content %}
-<div class="d-flex gap-2 flex-wrap align-items-center justify-content-between mb-3">
-  <h1 class="h2 mb-0">Denuncia #{{ denuncia.id }}</h1>
-  {% if user.es_funcionario %}<a href="{% url 'denuncias:gestionar' denuncia.id %}" class="btn btn-success">Gestionar denuncia</a>{% endif %}
-</div>
-<div class="row g-3">
-  <div class="col-lg-8"><div class="card shadow-sm"><div class="card-body">
-    <h2 class="h4">{{ denuncia.nombre_corto }}</h2>
-    <p><span class="badge {% if denuncia.estado == 'RESUELTO' %}text-bg-success{% elif denuncia.estado == 'EN_PROCESO' %}text-bg-primary{% else %}text-bg-warning{% endif %}">{{ denuncia.get_estado_display }}</span></p>
-    <dl class="row">
-      <dt class="col-sm-4">Categoría</dt><dd class="col-sm-8">{{ denuncia.categoria.nombre }}</dd>
-      <dt class="col-sm-4">Descripción</dt><dd class="col-sm-8">{{ denuncia.descripcion|linebreaksbr }}</dd>
-      <dt class="col-sm-4">Ubicación</dt><dd class="col-sm-8">{{ denuncia.direccion|default:'Punto seleccionado en mapa' }}{% if denuncia.latitud is not None %} · ({{ denuncia.latitud }}, {{ denuncia.longitud }}){% endif %}</dd>
-      <dt class="col-sm-4">Creada</dt><dd class="col-sm-8">{{ denuncia.creado|date:'d/m/Y H:i' }}</dd>
-      <dt class="col-sm-4">Responsable</dt><dd class="col-sm-8">{{ denuncia.asignado_a|default:'Sin asignar' }}</dd>
-    </dl>
-    {% if denuncia.foto %}<h3 class="h5">Fotografía adjunta</h3><img src="{{ denuncia.foto.url }}" alt="Evidencia fotográfica de la denuncia" class="img-fluid rounded foto-evidencia">{% endif %}
-  </div></div></div>
-  <div class="col-lg-4"><div class="card shadow-sm"><div class="card-body">
-    <h2 class="h5">Historial</h2>
-    <ol class="list-group list-group-numbered">
-      {% for evento in denuncia.historial.all %}<li class="list-group-item"><div class="fw-semibold">{{ evento.detalle }}</div><small class="text-muted">{{ evento.fecha|date:'d/m/Y H:i' }} · {{ evento.usuario.username }}</small></li>
-      {% empty %}<li class="list-group-item">Sin movimientos.</li>{% endfor %}
-    </ol>
-  </div></div></div>
-</div>
-<a class="btn btn-outline-secondary mt-3" href="{% url 'denuncias:listado' %}">Volver al listado</a>
+<div class="page-heading"><div><p class="eyebrow mb-2">DETALLE DE DENUNCIA · #{{ denuncia.id }}</p><h1 class="mb-2">{{ denuncia.nombre_corto }}</h1><p class="text-muted mb-0">Registrada el {{ denuncia.creado|date:'d/m/Y' }} a las {{ denuncia.creado|date:'H:i' }}.</p></div><div class="heading-actions">{% if user.es_funcionario %}<a href="{% url 'denuncias:registrar_actuacion' denuncia.pk %}" class="btn btn-accent">Registrar verificación</a><a href="{% url 'denuncias:gestionar' denuncia.pk %}" class="btn btn-outline-success">Gestionar estado / responsable</a>{% endif %}<a href="{% url 'denuncias:listado' %}" class="btn btn-outline-secondary">← Volver</a></div></div>
+<div class="detail-layout"><div class="detail-main">
+  <section class="surface-card detail-status"><div class="d-flex justify-content-between align-items-center gap-2 mb-4"><h2 class="mb-0">Estado de la denuncia</h2><span class="status-pill {% if denuncia.estado == 'RESUELTO' %}status-done{% elif denuncia.estado == 'EN_PROCESO' %}status-progress{% else %}status-pending{% endif %}">{{ denuncia.get_estado_display }}</span></div>
+    <div class="state-timeline" role="list" aria-label="Etapas del seguimiento">
+      <div class="timeline-node completed" role="listitem"><span class="timeline-circle">✓</span><strong>Pendiente</strong><small>Recibida</small></div>
+      <div class="timeline-node {% if denuncia.estado == 'EN_PROCESO' or denuncia.estado == 'RESUELTO' %}completed{% endif %}" role="listitem"><span class="timeline-circle">{% if denuncia.estado == 'EN_PROCESO' or denuncia.estado == 'RESUELTO' %}✓{% else %}2{% endif %}</span><strong>En proceso</strong><small>En atención</small></div>
+      <div class="timeline-node {% if denuncia.estado == 'RESUELTO' %}completed{% endif %}" role="listitem"><span class="timeline-circle">{% if denuncia.estado == 'RESUELTO' %}✓{% else %}3{% endif %}</span><strong>Resuelto</strong><small>Finalizada</small></div>
+    </div>
+  </section>
+  <section class="surface-card detail-info"><h2>Información del reporte</h2><div class="detail-field-grid"><div><small>Categoría</small><strong>{{ denuncia.categoria.nombre }}</strong></div><div><small>Responsable municipal</small><strong>{{ denuncia.asignado_a|default:'Aún sin asignar' }}</strong></div><div class="wide"><small>Descripción del problema</small><p>{{ denuncia.descripcion|linebreaksbr }}</p></div><div class="wide"><small>Ubicación registrada</small><p>{{ denuncia.direccion|default:'Punto marcado en el mapa' }}{% if denuncia.latitud is not None and denuncia.longitud is not None %}<br><span class="text-muted small">Coordenadas: {{ denuncia.latitud }}, {{ denuncia.longitud }}</span>{% endif %}</p></div></div>
+    {% if denuncia.foto %}<div class="evidence-section"><h3>Fotografía adjunta</h3><img src="{{ denuncia.foto.url }}" class="foto-evidencia" loading="lazy" alt="Fotografía adjuntada por el ciudadano"></div>{% endif %}
+  </section>
+  {% if user.es_funcionario or user.es_administrador %}
+  <section class="surface-card mt-3">
+    <h2>Actuaciones municipales</h2>
+    <p class="text-muted small">Constancias internas de las verificaciones realizadas. No constituyen actas judiciales.</p>
+    {% for actuacion in actuaciones %}
+    <div class="border rounded p-3 mb-3">
+      <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+        <strong>Verificación del {{ actuacion.fecha_verificacion|date:'d/m/Y' }}</strong>
+        <span class="badge text-bg-light">{{ actuacion.get_resultado_display }}</span>
+      </div>
+      <p class="mb-1"><strong>Lugar:</strong> {{ actuacion.lugar_verificado }}</p>
+      <p class="mb-1"><strong>Hechos:</strong> {{ actuacion.hechos_constatados|linebreaksbr }}</p>
+      {% if actuacion.medidas_adoptadas %}<p class="mb-1"><strong>Medidas adoptadas:</strong> {{ actuacion.medidas_adoptadas|linebreaksbr }}</p>{% endif %}
+      {% if actuacion.observaciones %}<p class="mb-1"><strong>Observaciones:</strong> {{ actuacion.observaciones|linebreaksbr }}</p>{% endif %}
+      {% if actuacion.proxima_verificacion %}<p class="mb-1"><strong>Próxima visita:</strong> {{ actuacion.proxima_verificacion|date:'d/m/Y' }}</p>{% endif %}
+      <small class="text-muted">Registrado por {{ actuacion.funcionario }} el {{ actuacion.fecha_registro|date:'d/m/Y H:i' }}</small>
+    </div>
+    {% empty %}
+    <p class="text-muted">Todavía no se registraron verificaciones municipales.</p>
+    {% endfor %}
+  </section>
+  {% endif %}
+</div><aside class="detail-aside"><section class="surface-card detail-history"><h2>Historial de movimientos</h2><p class="text-muted small">Actualizaciones realizadas desde el registro.</p><ol class="history-list">{% for evento in denuncia.historial.all %}<li><span class="history-marker" aria-hidden="true"></span><strong>{{ evento.detalle }}</strong><small>{{ evento.fecha|date:'d/m/Y H:i' }} · {{ evento.usuario.username }}</small></li>{% empty %}<li><strong>Sin movimientos.</strong></li>{% endfor %}</ol></section><div class="tip-card"><span aria-hidden="true">ⓘ</span><div><strong>Seguimiento</strong><p>El estado de la denuncia solo puede ser modificado por funcionarios municipales autorizados.</p></div></div></aside></div>
 {% endblock %}

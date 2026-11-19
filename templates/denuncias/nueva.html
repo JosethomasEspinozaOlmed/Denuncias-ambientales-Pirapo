@@ -3,36 +3,38 @@
 {% block title %}Nueva denuncia{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
 {% block content %}
-<h1 class="h2">Registrar denuncia ambiental</h1>
-<p class="text-muted">Categoría, descripción y ubicación son obligatorias. La fotografía es opcional.</p>
-<div class="row g-3"><div class="col-lg-7"><div class="card shadow-sm"><div class="card-body p-4">
-  <form method="post" enctype="multipart/form-data">
+<div class="page-heading"><div><p class="eyebrow mb-2">PARTICIPACIÓN CIUDADANA</p><h1 class="mb-2">Registrar denuncia ambiental</h1><p class="text-muted mb-0">Completá los datos del problema. Los campos marcados con <strong>*</strong> son obligatorios.</p></div><a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">← Volver al panel</a></div>
+<div class="form-layout">
+  <form id="form-denuncia" method="post" enctype="multipart/form-data" class="surface-card report-form" novalidate>
     {% csrf_token %}
-    {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
-    {% for campo in form %}
-      {% if campo.name == 'latitud' or campo.name == 'longitud' %}{{ campo }}{% else %}
-        <div class="mb-3"><label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} *{% endif %}</label>
-          {% if campo.name == 'foto' %}<input type="file" class="form-control" name="foto" id="{{ campo.id_for_label }}" accept="image/jpeg,image/png,image/webp">
-          {% elif campo.name == 'categoria' %}<select name="categoria" id="{{ campo.id_for_label }}" class="form-select" required><option value="">Seleccioná una categoría</option>{% for opcion in campo.field.queryset %}<option value="{{ opcion.id }}" {% if campo.value|stringformat:'s' == opcion.pk|stringformat:'s' %}selected{% endif %}>{{ opcion.nombre }}</option>{% endfor %}</select>
-          {% elif campo.name == 'descripcion' %}<textarea name="descripcion" id="{{ campo.id_for_label }}" class="form-control" rows="4" required>{{ campo.value|default_if_none:'' }}</textarea>
-          {% else %}<input class="form-control" id="{{ campo.id_for_label }}" type="text" name="{{ campo.name }}" value="{{ campo.value|default_if_none:'' }}" {% if campo.field.required %}required{% endif %}>{% endif %}
-          {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
-          {% for error in campo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-        </div>
-      {% endif %}
-    {% endfor %}
-    <p id="ubicacion-feedback" class="text-muted small" aria-live="polite">Sin coordenadas seleccionadas. Podés escribir una dirección de referencia.</p>
-    <button class="btn btn-success" type="submit">Guardar denuncia</button>
+    {% for error in form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
+    <section class="form-section">
+      <div class="form-section-head"><span class="number-circle">1</span><div><h2>¿Qué está pasando?</h2><p>Elegí la categoría y describí la problemática ambiental de forma clara.</p></div></div>
+      <div class="mb-3"><label class="form-label" for="{{ form.categoria.id_for_label }}">Categoría <span class="required-mark">*</span></label><select name="categoria" id="{{ form.categoria.id_for_label }}" class="form-select" required><option value="">Seleccioná el tipo de problema</option>{% for cat in form.categoria.field.queryset %}<option value="{{ cat.id }}" {% if form.categoria.value|stringformat:'s' == cat.id|stringformat:'s' %}selected{% endif %}>{{ cat.nombre }}</option>{% endfor %}</select><div class="field-error">{% for error in form.categoria.errors %}{{ error }}{% endfor %}</div></div>
+      <div class="mb-0"><label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripción <span class="required-mark">*</span></label><textarea name="descripcion" id="{{ form.descripcion.id_for_label }}" class="form-control" rows="5" required placeholder="Contanos qué observaste, desde cuándo ocurre y qué impacto tiene...">{{ form.descripcion.value|default_if_none:'' }}</textarea><div class="form-text">Incluí los detalles necesarios para identificar el problema.</div><div class="field-error">{% for error in form.descripcion.errors %}{{ error }}{% endfor %}</div></div>
+    </section>
+    <section class="form-section">
+      <div class="form-section-head"><span class="number-circle">2</span><div><h2>¿Dónde está el problema?</h2><p>Podés ingresar una dirección o seleccionar un punto en el mapa.</p></div></div>
+      <div class="mb-2"><label class="form-label" for="{{ form.direccion.id_for_label }}">Dirección o referencia del lugar</label><input type="text" class="form-control" name="direccion" id="{{ form.direccion.id_for_label }}" maxlength="255" value="{{ form.direccion.value|default_if_none:'' }}" placeholder="Ej.: Barrio Centro, cerca de la plaza"><div class="form-text">Obligatoria si no marcás un punto en el mapa.</div><div class="field-error">{% for error in form.direccion.errors %}{{ error }}{% endfor %}</div></div>
+      {{ form.latitud }}{{ form.longitud }}
+      {% for error in form.latitud.errors %}<div class="field-error">{{ error }}</div>{% endfor %}{% for error in form.longitud.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      <div class="location-inline"><span aria-hidden="true">⌖</span><p id="ubicacion-feedback" aria-live="polite">Sin punto seleccionado. Podés ingresar una dirección arriba o marcar el mapa.</p></div>
+    </section>
+    <section class="form-section">
+      <div class="form-section-head"><span class="number-circle">3</span><div><h2>Adjuntá una fotografía</h2><p>La evidencia fotográfica es opcional, pero puede ayudar a identificar el problema.</p></div></div>
+      <label class="upload-box" for="{{ form.foto.id_for_label }}"><span class="upload-box-icon" aria-hidden="true">▧</span><strong>Seleccionar una imagen</strong><small>JPG, PNG o WebP · Máximo 5 MB</small></label>
+      <input class="visually-hidden-file" type="file" name="foto" id="{{ form.foto.id_for_label }}" accept="image/jpeg,image/png,image/webp">
+      <p id="foto-nombre" class="form-text mt-2" aria-live="polite">Ninguna fotografía seleccionada.</p>
+      <img id="foto-vista-previa" class="upload-preview" alt="Vista previa de la evidencia seleccionada" hidden>
+      {% for error in form.foto.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+    </section>
+    <div class="form-actions"><p>Al enviar la denuncia se registrará inicialmente como <strong>Pendiente</strong>.</p><button type="submit" class="btn btn-accent btn-lg">Registrar denuncia ↗</button></div>
   </form>
-</div></div></div>
-<div class="col-lg-5"><div class="card shadow-sm"><div class="card-body">
-  <h2 class="h5">Ubicación en el mapa</h2>
-  <p class="small text-muted">Hacé clic en el mapa para colocar el marcador o usá la ubicación del dispositivo. Si el mapa no carga, completá la dirección en el formulario.</p>
-  <div id="mapa" class="mapa" role="region" aria-label="Mapa para seleccionar ubicación"></div>
-  <button type="button" class="btn btn-outline-success btn-sm mt-3" id="usar-gps">Usar mi ubicación</button>
-  <button type="button" class="btn btn-outline-secondary btn-sm mt-3" id="quitar-punto">Quitar marcador</button>
-  <p class="small text-muted mt-3 mb-0">La ubicación GPS puede requerir HTTPS al probar desde un celular. El ingreso manual siempre está disponible.</p>
-</div></div></div></div>
+  <aside class="map-column">
+    <div class="surface-card map-card"><div class="map-heading"><span class="map-icon" aria-hidden="true">⌖</span><div><h2>Ubicación en el mapa</h2><p>Hacé clic sobre el lugar que querés reportar.</p></div></div><div id="mapa" class="mapa" role="region" aria-label="Mapa interactivo para seleccionar la ubicación"></div><div class="map-actions"><button id="usar-gps" type="button" class="btn btn-success btn-sm">⌖ Usar mi ubicación</button><button id="quitar-punto" type="button" class="btn btn-outline-secondary btn-sm">Quitar punto</button></div><div class="map-footnote">La geolocalización del dispositivo requiere permiso y, en algunos celulares, HTTPS. Podés registrar la dirección manualmente si no está disponible.</div></div>
+    <div class="tip-card"><span aria-hidden="true">✧</span><div><strong>Consejo para tu denuncia</strong><p>Una descripción clara y una ubicación precisa ayudan a realizar un mejor seguimiento.</p></div></div>
+  </aside>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{% static 'js/ubicacion.js' %}"></script>
+<script src="{% static 'js/ubicacion.js' %}?v=3-der"></script>
 {% endblock %}

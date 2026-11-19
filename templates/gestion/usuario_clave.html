@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Restablecer contraseña{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRACIÓN · SEGURIDAD</p><h1>Restablecer contraseña</h1><p class="text-muted">Cuenta: <strong>{{ objetivo.username }}</strong>. No se mostrará la contraseña actual.</p></div></div>
+{% include 'gestion/_tabs.html' %}
+<section class="surface-card admin-edit-card"><form method="post" novalidate>{% csrf_token %}
+{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{% for field in form %}<div class="mb-3"><label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>{{ field }}{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
+<div class="admin-form-actions"><button type="submit" class="btn btn-success">Guardar nueva clave</button><a class="btn btn-outline-secondary" href="{% url 'administracion:usuarios' %}">Cancelar</a></div>
+</form></section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRACIÓN · CATEGORÍAS</p><h1>{{ titulo }}</h1><p class="text-muted">Las categorías inactivas no se muestran en el registro de nuevas denuncias.</p></div></div>
+{% include 'gestion/_tabs.html' %}
+<section class="surface-card admin-edit-card"><form method="post" novalidate>{% csrf_token %}
+{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{% for field in form %}<div class="mb-3"><label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
+<div class="admin-form-actions"><button type="submit" class="btn btn-success">Guardar categoría</button><a class="btn btn-outline-secondary" href="{% url 'administracion:categorias' %}">Cancelar</a></div>
+</form></section>
+{% endblock %}

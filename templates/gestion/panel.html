@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Administración municipal{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">PIRAPÓ · ADMINISTRACIÓN</p><h1>Panel administrativo</h1><p class="text-muted">Gestión municipal de cuentas y categorías, sin ingresar a Django Admin.</p></div>
+</div>
+{% include 'gestion/_tabs.html' %}
+<div class="admin-stats">
+  <article><span>Usuarios registrados</span><strong>{{ resumen.total_usuarios }}</strong></article>
+  <article><span>Ciudadanos activos</span><strong>{{ resumen.ciudadanos }}</strong></article>
+  <article><span>Funcionarios activos</span><strong>{{ resumen.funcionarios }}</strong></article>
+  <article><span>Categorías habilitadas</span><strong>{{ resumen.categorias }}</strong></article>
+  <article><span>Denuncias</span><strong>{{ resumen.denuncias }}</strong></article>
+  <article><span>Denuncias pendientes</span><strong>{{ resumen.pendientes }}</strong></article>
+</div>
+<div class="admin-cards">
+  <article class="surface-card admin-action-card">
+    <h2>Usuarios y funcionarios</h2>
+    <p>Registrá nuevos funcionarios, actualizá sus datos y desactivá cuentas cuando corresponda.</p>
+    <a href="{% url 'administracion:usuarios' %}" class="btn btn-success">Gestionar usuarios</a>
+  </article>
+  <article class="surface-card admin-action-card">
+    <h2>Categorías ambientales</h2>
+    <p>Creá o editá categorías y decidí cuáles pueden utilizarse en las denuncias nuevas.</p>
+    <a href="{% url 'administracion:categorias' %}" class="btn btn-success">Gestionar categorías</a>
+  </article>
+</div>
+<p class="admin-note">Por seguridad, las cuentas y categorías se desactivan en lugar de eliminarse físicamente. Las denuncias históricas se conservan.</p>
+{% endblock %}

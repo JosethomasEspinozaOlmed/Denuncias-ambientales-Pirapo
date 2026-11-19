@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Administrar usuarios{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">GESTIÓN MUNICIPAL</p><h1>Usuarios y funcionarios</h1><p class="text-muted">Creá, modificá y desactivá cuentas.</p></div><a class="btn btn-success" href="{% url 'administracion:usuario_nuevo' %}">+ Nuevo usuario</a></div>
+{% include 'gestion/_tabs.html' %}
+<section class="surface-card admin-list-card">
+<form method="get" class="admin-filters" aria-label="Filtrar usuarios">
+  <div><label for="buscar" class="form-label">Buscar</label><input id="buscar" class="form-control" name="q" value="{{ q }}" placeholder="Nombre, usuario o correo"></div>
+  <div><label for="rol" class="form-label">Rol</label><select id="rol" name="rol" class="form-select"><option value="">Todos los roles</option>{% for valor,etiqueta in roles %}<option value="{{ valor }}" {% if rol == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select></div>
+  <div><label for="estado" class="form-label">Estado</label><select id="estado" name="estado" class="form-select"><option value="">Todos</option><option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activos</option><option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivos</option></select></div>
+  <button type="submit" class="btn btn-outline-success">Filtrar</button>
+</form>
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0"><thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+<tbody>{% for u in pagina %}<tr>
+  <td><strong>{{ u.username }}</strong><br><small class="text-muted">{{ u.get_full_name|default:'Sin nombre' }}</small></td>
+  <td>{{ u.email }}</td><td>{{ u.get_rol_display }}</td>
+  <td><span class="admin-status {% if u.is_active %}on{% else %}off{% endif %}">{% if u.is_active %}Activo{% else %}Inactivo{% endif %}</span></td>
+  <td><div class="admin-row-actions">
+    {% if u.pk != user.pk and not u.is_superuser %}{% if u.rol != 'ADMINISTRADOR' or user.is_superuser %}
+      <a href="{% url 'administracion:usuario_editar' u.pk %}" class="btn btn-sm btn-outline-success">Editar</a>
+      <a href="{% url 'administracion:usuario_clave' u.pk %}" class="btn btn-sm btn-outline-secondary">Clave</a>
+      <form method="post" action="{% url 'administracion:usuario_estado' u.pk %}">{% csrf_token %}<button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">{% if u.is_active %}Desactivar{% else %}Activar{% endif %}</button></form>
+    {% else %}<small class="text-muted">Cuenta protegida</small>{% endif %}{% else %}<small class="text-muted">Cuenta protegida</small>{% endif %}
+  </div></td>
+</tr>{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron usuarios.</td></tr>{% endfor %}</tbody></table>
+</div>
+</section>
+{% include 'gestion/_paginacion.html' %}
+{% endblock %}

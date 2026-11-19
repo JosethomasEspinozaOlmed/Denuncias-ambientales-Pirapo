@@ -1,0 +1,52 @@
+ETAPA 4 - REGISTRO DE VERIFICACIÓN MUNICIPAL / PIRAPÓ
+=========================================================
+
+Alcance
+-------
+Nueva pantalla de actuación municipal para funcionarios:
+  /denuncias/<ID>/verificacion/nueva/
+Se accede con el botón "Registrar verificación" desde el detalle o la gestión.
+
+Campos:
+- Fecha de verificación (no futura)
+- Lugar verificado
+- Resultado: confirmada / no constatada / requiere seguimiento
+- Hechos constatados
+- Medidas adoptadas (opcionales)
+- Observaciones (opcionales)
+- Próxima visita (opcional, fecha posterior)
+- Nuevo estado de denuncia (opcional)
+
+La denuncia original se mantiene; pueden existir muchas actuaciones por denuncia.
+Se conserva también el historial de estados y se registra el autor de cada visita.
+Los detalles internos solo se muestran a funcionarios y administradores.
+
+IMPORTANTE
+----------
+El ZIP se construyó sobre los archivos de las Etapas 1, 2, corrección 0003,
+Etapa 3 de ciudadano y formulario simplificado previamente entregados.
+Si personalizaste forms.py, views.py, urls.py, models.py o detalle.html en tu PC,
+compará los archivos antes de sobrescribirlos para no perder cambios propios.
+No reemplazar las migraciones 0001, 0002 ni 0003.
+
+INSTALACIÓN RECOMENDADA (PowerShell, carpeta raíz del proyecto)
+-------------------------------------------------------------
+1) Confirmá git status / develop y respaldá código + PostgreSQL (ver guía en chat).
+2) Extraé este ZIP en C:\Proyectos\sistema_denuncias_pirapo con -Force.
+3) docker compose exec web python manage.py makemigrations --check --dry-run
+   Esperado: No changes detected
+4) docker compose exec web python manage.py migrate --plan
+   Verificá denuncias.0004_actuacion_municipal
+5) docker compose exec web python manage.py migrate
+6) docker compose exec web python manage.py check
+7) docker compose exec web python manage.py test
+8) Ingresá como funcionario a una denuncia, luego Registrar verificación.
+
+NUEVA ENTIDAD
+-------------
+ActuacionMunicipal, séptima entidad principal del DER ampliado.
+Actualizar DER, diccionario de datos, CU/HU/MTR y pruebas académicas.
+
+No incluye CRUD propio de administrador ni inicio de sesión por correo;
+son las próximas etapas. El formulario es un registro administrativo interno,
+no una denuncia judicial formal.

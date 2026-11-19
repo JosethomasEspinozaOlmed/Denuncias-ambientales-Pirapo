@@ -1,0 +1,54 @@
+ETAPA 3 — INTERFACES DEL CIUDADANO · COMPATIBLE CON DER 0003
+Sistema de Denuncias Ambientales de Pirapó
+
+Alcance
+- Interfaz de inicio, acceso y registro ciudadano.
+- Panel con cifras y últimas denuncias.
+- Formulario ciudadano con mapa interactivo, GPS, dirección manual y vista previa de foto.
+- Listado con filtros, paginación y detalle con historial.
+- Diseño responsive para computadoras y celulares.
+- Se mantiene el mosaico de OpenStreetMap que fue corregido por el error 403:
+  https://tile.openstreetmap.org/{z}/{x}/{y}.png
+  referrerPolicy = strict-origin-when-cross-origin
+- Conserva los nombres y relaciones de la migración 0003_alinear_der.py.
+
+MUY IMPORTANTE
+- Este archivo NO incluye models.py, migrations, views.py, urls.py ni settings.py.
+- NO ejecuta migraciones, ni reinicia, ni borra PostgreSQL.
+- Se debe conservar en pirapo/settings.py lo siguiente (ya configurado previamente):
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+- No ejecutar docker compose down -v.
+- Tu carpeta debe incluir las mejoras de la Etapa 2 y la corrección DER 0003.
+- El cambio en base.html afecta el menú de los tres roles, aunque esta etapa se centra en ciudadano.
+
+PASOS (PowerShell en C:\Proyectos\sistema_denuncias_pirapo)
+1. Confirmá que no haya cambios que te falte guardar en Git: git status
+2. Copia de seguridad de los archivos visuales:
+   New-Item -ItemType Directory -Force C:\Proyectos\respaldo_pirapo_etapa3 | Out-Null
+   Copy-Item .\templates C:\Proyectos\respaldo_pirapo_etapa3\templates -Recurse -Force
+   Copy-Item .\static C:\Proyectos\respaldo_pirapo_etapa3\static -Recurse -Force
+3. Descomprimí el ZIP encima de la raíz del proyecto:
+   Expand-Archive -Path "$env:USERPROFILE\Downloads\etapa3_ciudadano_compatible_der.zip" -DestinationPath "." -Force
+4. Si el contenedor usa volúmenes de código (compose.yaml), reiniciá el servicio:
+   docker compose restart web
+   Si los cambios no se ven porque la imagen copia el código, ejecutá:
+   docker compose up -d --build web
+5. Verificá:
+   docker compose exec web python manage.py check
+   docker compose exec web python manage.py test
+6. Abrí http://127.0.0.1:8000/ y actualizá con Ctrl+F5.
+
+PRUEBAS MANUALES
+- Cuenta ciudadana -> Panel -> Nueva denuncia.
+- Registrar con dirección y sin foto: debe guardar.
+- Registrar sin dirección ni punto: debe rechazar.
+- Marcar punto en mapa y registrar: coordenadas y ubicación deben conservarse.
+- Probar cargar una imagen: vista previa (no es obligatoria).
+- Ver las denuncias propias, filtrar y abrir detalles.
+- Comprobar que un ciudadano no ve denuncias de otras cuentas.
+- Ingresar como funcionario y administrador: navegación y pantallas existentes deben seguir operativas.
+- Si los mosaicos del mapa fallan, revisar encabezados Referer en DevTools y configuración de Django.
+- GPS necesita contexto seguro y permiso del navegador (localhost o HTTPS).
+
+Si algo falla: docker compose logs --tail=100 web
+Para volver atrás visualmente, restaurá los respaldos de templates y static.

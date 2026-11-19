@@ -1,0 +1,34 @@
+/* Etapa 5: panel municipal separado de /admin/ (Django Admin técnico). */
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+.admin-tabs a{text-decoration:none;color:var(--forest-dark);font-size:13px;font-weight:700;border:1px solid #d5e7da;background:#fff;padding:10px 13px;border-radius:10px}
+.admin-tabs a:hover,.admin-tabs a:focus-visible{background:var(--mint);border-color:#8fc7a7}
+.admin-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:24px}
+.admin-stats article{background:#fff;border:1px solid var(--line);border-radius:16px;padding:19px 20px;box-shadow:var(--shadow)}
+.admin-stats span{color:var(--muted);font-size:13px;display:block}
+.admin-stats strong{display:block;color:var(--forest);font-size:32px;font-weight:800;line-height:1.5}
+.admin-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.admin-action-card{padding:28px}
+.admin-action-card h2{font-size:1.22rem;font-weight:750}
+.admin-action-card p{color:var(--muted);font-size:14px;line-height:1.65;min-height:55px}
+.admin-note{font-size:12px;color:var(--muted);margin-top:22px}
+.admin-list-card{overflow:hidden}
+.admin-filters{padding:22px;display:flex;gap:12px;flex-wrap:wrap;align-items:end;border-bottom:1px solid var(--line)}
+.admin-filters>div{min-width:160px;flex:1}
+.admin-filters>div:first-child{flex:2;min-width:220px}
+.admin-filters label{font-size:13px;font-weight:600}
+.admin-filters button{white-space:nowrap}
+.admin-list-card table{font-size:13px}
+.admin-list-card td,.admin-list-card th{padding:13px 17px;vertical-align:middle}
+.admin-list-card th{color:#52675c;font-weight:750;background:#f6faf7;white-space:nowrap}
+.admin-row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.admin-row-actions form{display:inline;margin:0}
+.admin-status{display:inline-flex;border-radius:100px;padding:5px 10px;font-size:11px;font-weight:750;white-space:nowrap}
+.admin-status.on{background:#e6f5ea;color:#236841}.admin-status.off{background:#f4e9e9;color:#8a4141}
+.admin-edit-card{padding:28px;max-width:710px}
+.admin-edit-card .form-text{font-size:12px}
+.admin-edit-card .errorlist{margin:0 0 8px;color:#b42318}
+.admin-form-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+.admin-pagination{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:14px;color:var(--muted);font-size:13px}
+.admin-pagination>div{display:flex;gap:7px}
+@media(max-width:850px){.admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-cards{grid-template-columns:1fr}}
+@media(max-width:580px){.admin-stats{grid-template-columns:1fr 1fr;gap:9px}.admin-stats article{padding:14px}.admin-stats strong{font-size:26px}.admin-filters{padding:15px}.admin-edit-card{padding:20px}.admin-list-card td,.admin-list-card th{padding:11px}.admin-pagination{flex-wrap:wrap}}

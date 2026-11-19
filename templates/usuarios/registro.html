@@ -1,23 +1,33 @@
 {% extends 'base.html' %}
 {% block title %}Registro ciudadano{% endblock %}
 {% block content %}
-<div class="row justify-content-center"><div class="col-md-7">
-  <div class="card shadow-sm"><div class="card-body p-4">
-    <h1 class="h3">Crear cuenta de ciudadano</h1>
-    <p class="text-muted">Las cuentas de funcionario y administrador se crean únicamente por personal autorizado.</p>
+<div class="auth-layout">
+  <div class="auth-illustration">
+    <div class="eyebrow">HACÉ PARTE DEL CAMBIO</div>
+    <h1>Sumate a una comunidad comprometida.</h1>
+    <p>Creá tu cuenta para registrar problemáticas ambientales en Pirapó.</p>
+    <div class="auth-symbol" aria-hidden="true">✦</div>
+    <div class="auth-highlights"><span>✓ Registro gratuito</span><span>✓ Fotografía opcional</span></div>
+  </div>
+  <section class="surface-card auth-form">
+    <p class="eyebrow mb-2">REGISTRO CIUDADANO</p>
+    <h2>Creá tu cuenta</h2>
+    <p class="text-muted">Los funcionarios y administradores son registrados por personal autorizado.</p>
     <form method="post" novalidate>
       {% csrf_token %}
-      {% for field in form %}
-        <div class="mb-3">
-          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          <input class="form-control" id="{{ field.id_for_label }}" type="{% if 'password' in field.name %}password{% elif field.name == 'email' %}email{% else %}text{% endif %}" name="{{ field.html_name }}" value="{% if 'password' not in field.name %}{{ field.value|default_if_none:'' }}{% endif %}" {% if field.field.required %}required{% endif %}>
-          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-        </div>
+      {% for hidden in form.hidden_fields %}{{ hidden }}{% for error in hidden.errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}{% endfor %}
+      {% for field in form.visible_fields %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
       {% endfor %}
       {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
-      <button class="btn btn-success" type="submit">Crear cuenta</button>
+      <button class="btn btn-success btn-lg w-100" type="submit">Crear mi cuenta →</button>
     </form>
-  </div></div>
-</div></div>
+    <p class="auth-footer">¿Ya tenés cuenta? <a href="{% url 'login' %}">Ingresá aquí</a></p>
+  </section>
+</div>
 {% endblock %}

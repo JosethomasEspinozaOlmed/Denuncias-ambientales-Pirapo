@@ -1,29 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Mi panel{% endblock %}
 {% block content %}
-<h1 class="h2 mb-1">Bienvenido/a, {{ user.first_name|default:user.username }}</h1>
-<p class="text-muted mb-4">Tu rol: {% if user.es_administrador %}Administrador{% elif user.es_funcionario %}Funcionario municipal{% else %}Ciudadano{% endif %}</p>
-<div class="row g-3 mb-4">
-  <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">{% if user.es_administrador or user.es_funcionario %}Denuncias registradas{% else %}Mis denuncias{% endif %}</span><div class="h1 mt-2 mb-0">{{ resumen.total }}</div></div></div></div>
-  {% if user.es_administrador %}
-    <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">Cuentas ciudadanas</span><div class="h1 mt-2 mb-0">{{ resumen.ciudadanos }}</div></div></div></div>
-  {% else %}
-    <div class="col-sm-6 col-lg-4"><div class="card card-stat"><div class="card-body"><span class="text-muted">Pendientes</span><div class="h1 mt-2 mb-0">{{ resumen.pendientes }}</div></div></div></div>
-  {% endif %}
+<div class="page-heading">
+  <div><p class="eyebrow mb-2">{% if user.es_funcionario %}GESTIÓN MUNICIPAL{% elif user.es_administrador %}ADMINISTRACIÓN{% else %}PORTAL CIUDADANO{% endif %} · PIRAPÓ</p><h1 class="mb-2">¡Hola, {{ user.first_name|default:user.username }}!</h1><p class="text-muted mb-0">{% if user.es_funcionario %}Revisá y gestioná los reportes recibidos.{% elif user.es_administrador %}Consultá los indicadores y administrá la plataforma.{% else %}Este es el espacio para seguir el avance de tus denuncias.{% endif %}</p></div>
+  {% if user.rol == 'CIUDADANO' and not user.is_superuser %}<a href="{% url 'denuncias:nueva' %}" class="btn btn-accent btn-lg">+ Nueva denuncia</a>{% endif %}
 </div>
+
+<div class="stats-grid" aria-label="Resumen de denuncias">
+  <div class="stat-card"><span class="stat-indicator total">▣</span><p>{% if user.es_funcionario or user.es_administrador %}Denuncias registradas{% else %}Mis denuncias{% endif %}</p><strong>{{ resumen.total }}</strong><small>En total</small></div>
+  <div class="stat-card"><span class="stat-indicator pending">◷</span><p>Pendientes</p><strong>{{ resumen.pendientes }}</strong><small>Esperando atención</small></div>
+  <div class="stat-card"><span class="stat-indicator progress">↗</span><p>En proceso</p><strong>{{ resumen.en_proceso }}</strong><small>En seguimiento</small></div>
+  <div class="stat-card"><span class="stat-indicator done">✓</span><p>Resueltas</p><strong>{{ resumen.resueltos }}</strong><small>Atención finalizada</small></div>
+</div>
+
 {% if user.es_administrador %}
-  <h2 class="h5">Administración</h2>
-  <p>Gestioná usuarios, categorías y parámetros desde el panel administrativo inicial.</p>
-  {% if user.is_staff %}<a href="{% url 'admin:index' %}" class="btn btn-success">Abrir administración</a>{% else %}<p class="alert alert-info">Para usar la administración de Django, el usuario debe contar con autorización de acceso administrativo (is_staff).</p>{% endif %}
-  <a href="{% url 'denuncias:listado' %}" class="btn btn-outline-success">Consultar denuncias</a>
+  <section class="action-banner"><div class="action-symbol" aria-hidden="true">⚙</div><div><h2>Administración del sistema</h2><p>Hay {{ resumen.ciudadanos }} cuentas ciudadanas registradas. Administrá usuarios, permisos y categorías.</p></div><div class="action-links"><a class="btn btn-accent" href="{% url 'administracion:panel' %}">Panel municipal</a><a class="btn btn-outline-success" href="{% url 'denuncias:listado' %}">Consultar denuncias</a></div></section>
 {% elif user.es_funcionario %}
-  <h2 class="h5">Gestión municipal</h2>
-  <p>Podés revisar denuncias, asignarlas a funcionarios y modificar su estado.</p>
-  <a href="{% url 'denuncias:listado' %}" class="btn btn-success">Ver y gestionar denuncias</a>
+  <section class="action-banner"><div class="action-symbol" aria-hidden="true">☷</div><div><h2>Gestión municipal</h2><p>Tenés <strong>{{ resumen.asignadas }}</strong> denuncias asignadas. Revisá solicitudes y actualizá estados.</p></div><div class="action-links"><a class="btn btn-accent" href="{% url 'denuncias:listado' %}">Gestionar denuncias</a><a class="btn btn-outline-success" href="{% url 'denuncias:listado' %}?mias=1">Mis asignaciones</a></div></section>
 {% else %}
-  <h2 class="h5">Portal ciudadano</h2>
-  <p>Registrá un problema ambiental y seguí su atención.</p>
-  <a href="{% url 'denuncias:nueva' %}" class="btn btn-success">Registrar nueva denuncia</a>
-  <a href="{% url 'denuncias:listado' %}" class="btn btn-outline-success">Consultar mis denuncias</a>
+  <section class="action-banner citizen-banner"><div class="action-symbol" aria-hidden="true">✳</div><div><h2>Tu participación hace la diferencia</h2><p>¿Viste un problema ambiental en tu barrio? Contanos qué sucede. Recordá que la ubicación es obligatoria y la fotografía es opcional.</p></div><div class="action-links"><a class="btn btn-accent" href="{% url 'denuncias:nueva' %}">Registrar denuncia ↗</a><a class="btn btn-outline-success" href="{% url 'denuncias:listado' %}">Mis denuncias</a></div></section>
 {% endif %}
+
+<section class="surface-card recent-section">
+  <div class="surface-card-head"><div><p class="eyebrow mb-1">SEGUIMIENTO</p><h2>{% if user.es_funcionario or user.es_administrador %}Denuncias recientes{% else %}Mis últimas denuncias{% endif %}</h2></div><a class="text-link" href="{% url 'denuncias:listado' %}">Ver todas <span aria-hidden="true">→</span></a></div>
+  <div class="recent-list">
+    {% for d in recientes %}
+      <a class="recent-item" href="{% url 'denuncias:detalle' d.id %}">
+        <span class="recent-item-icon" aria-hidden="true">♧</span>
+        <span class="recent-item-info"><strong>{{ d.nombre_corto }}</strong><small>#{{ d.id }} · {{ d.categoria.nombre }} · {{ d.creado|date:'d/m/Y' }}</small></span>
+        <span class="status-pill {% if d.estado == 'RESUELTO' %}status-done{% elif d.estado == 'EN_PROCESO' %}status-progress{% else %}status-pending{% endif %}">{{ d.get_estado_display }}</span><span class="recent-chevron" aria-hidden="true">›</span>
+      </a>
+    {% empty %}
+      <div class="empty-state"><span class="empty-icon" aria-hidden="true">☘</span><h3>Todavía no hay denuncias</h3><p>{% if user.es_funcionario or user.es_administrador %}Los nuevos reportes aparecerán aquí.{% else %}Cuando registres tu primera denuncia, podrás seguirla desde este panel.{% endif %}</p>{% if user.rol == 'CIUDADANO' and not user.is_superuser %}<a href="{% url 'denuncias:nueva' %}" class="btn btn-success">Registrar mi primera denuncia</a>{% endif %}</div>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}

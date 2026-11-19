@@ -13,6 +13,26 @@ urlpatterns = [
     path("salir/", auth_views.LogoutView.as_view(), name="logout"),
     path("panel/", usuarios_views.dashboard, name="dashboard"),
     path("denuncias/", include("denuncias.urls")),
+    path("gestion/", include("usuarios.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Etapa 6: recuperación de contraseña (correo real solo con SMTP configurado).
+from django.contrib.auth import views as vistas_correo
+urlpatterns += [
+    path('recuperar-clave/', vistas_correo.PasswordResetView.as_view(
+        template_name='registration/password_reset_form.html',
+        email_template_name='registration/password_reset_email.html',
+        subject_template_name='registration/password_reset_subject.txt',
+    ), name='password_reset'),
+    path('recuperar-clave/enviado/', vistas_correo.PasswordResetDoneView.as_view(
+        template_name='registration/password_reset_done.html',
+    ), name='password_reset_done'),
+    path('restablecer-clave/<uidb64>/<token>/', vistas_correo.PasswordResetConfirmView.as_view(
+        template_name='registration/password_reset_confirm.html',
+    ), name='password_reset_confirm'),
+    path('restablecer-clave/finalizado/', vistas_correo.PasswordResetCompleteView.as_view(
+        template_name='registration/password_reset_complete.html',
+    ), name='password_reset_complete'),
+]

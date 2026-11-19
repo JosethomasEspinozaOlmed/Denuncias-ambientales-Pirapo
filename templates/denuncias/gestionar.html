@@ -4,6 +4,11 @@
 <div class="row justify-content-center"><div class="col-lg-7"><div class="card shadow-sm"><div class="card-body p-4">
   <h1 class="h3">Gestionar denuncia #{{ denuncia.id }}</h1>
   <p class="text-muted">{{ denuncia.nombre_corto }}</p>
+  <div class="alert alert-light border mb-3">
+    <strong>¿Realizaste una visita o inspección?</strong>
+    <p class="mb-2 small text-muted">Registrá la fecha, el lugar, los hechos constatados y las medidas adoptadas.</p>
+    <a class="btn btn-outline-success btn-sm" href="{% url 'denuncias:registrar_actuacion' denuncia.pk %}">Registrar verificación municipal</a>
+  </div>
   <form method="post">
     {% csrf_token %}
     {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
